@@ -30,10 +30,10 @@ resource "aws_internet_gateway" "otofu-gw" {
 }
 
 resource "aws_route_table" "otofu-public-rtb" {
-  vpc_id = "${aws_vpc.tf_vpc.id}"
+  vpc_id = "${aws_vpc.otofu-tf-vpc.id}"
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
+    gateway_id = "${aws_internet_gateway.otofu-gw.id}"
   }
   tags {
     Name = "otofu-tf-rtb"
@@ -48,7 +48,7 @@ resource "aws_route_table_association" "public_a" {
 resource "aws_security_group" "app" {
   name        = "otofu-tf-web"
   description = "It is a security group on http of otofu-tf-vpc"
-  vpc_id      = "${aws_vpc.tf_vpc.id}"
+  vpc_id      = "${aws_vpc.otofu-tf-vpc.id}"
   tags {
     Name = "tf_web"
   }
@@ -82,6 +82,18 @@ resource "aws_security_group_rule" "all" {
 }
 
 resource "aws_instance" "otofu-tf-instance" {
-  ami           = "ami-2757f631"
-  instance_type = "t2.micro"
+  ami                         = "ami-374db956"
+  instance_type               = "t2.micro"
+  vpc_security_group_ids      = ["${aws_security_group.app.id}"]
+  subnet_id                   = "${aws_subnet.otofu-public-web.id}"
+  associate_public_ip_address = "true"
+  root_block_device = {
+    volume_type = "gp2"
+    volume_size = "20"
+  }
+  ebs_block_device = {
+    device_name = "/dev/sdf"
+    volume_type = "gp2"
+    volume_size = "100"
+  }
 }
